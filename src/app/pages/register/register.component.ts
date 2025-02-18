@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../auth/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -9,7 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { RouterModule } from '@angular/router'; // Import RouterModule
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -27,16 +30,23 @@ import { RouterModule } from '@angular/router'; // Import RouterModule
     MatIconModule,
     MatProgressSpinnerModule,
     CommonModule,
-    RouterModule, // Add RouterModule to the imports array
+    RouterModule
   ],
 })
 export class RegisterComponent {
   registerForm: FormGroup;
   isLoading = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private snackBar: MatSnackBar
+  ) {
     this.registerForm = this.fb.group({
+      fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
+      phoneNumber: ['', Validators.required],
       password: ['', Validators.required],
       confirmPassword: ['', Validators.required],
     });
@@ -45,11 +55,19 @@ export class RegisterComponent {
   onSubmit() {
     if (this.registerForm.valid) {
       this.isLoading = true;
-      // Simulate a registration process
-      setTimeout(() => {
-        this.isLoading = false;
-        // Handle successful registration
-      }, 2000);
+      const { fullName, email, phoneNumber, password, confirmPassword } = this.registerForm.value;
+      this.authService.register(fullName, email, phoneNumber, password, confirmPassword).subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.router.navigate(['/login2']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.snackBar.open('Registration failed. Please try again.', 'Close', {
+            duration: 3000,
+          });
+        }
+      });
     }
   }
 }
