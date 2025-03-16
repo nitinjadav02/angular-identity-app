@@ -53,7 +53,9 @@ export class LoginComponent {
       this.authService.login(email, password).subscribe({
         next: (response) => {
           this.isLoading = false;
-          // Handle successful login, e.g., store token, navigate to dashboard
+          // Save the token
+          this.authService.saveToken(response.token);
+          // Navigate to the dashboard
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
